@@ -67,21 +67,35 @@ new_data <- read_csv("Downloads/new.csv")
 # Remove the original smoking_history column from the new dataset and then join.
 new_data_modified <- new_data %>% select(-smoking_history)
 merged_data <- left_join(new_data_modified, all_patients_smoking, by = "id")
-merged_data <- merged_data %>%
-  relocate(smoking_history_numeric, years_since_quit, .after = (col_index - 1))
 
-head(merged_data)
+# Replace NA in years_since_quit with 0
+merged_data <- merged_data %>%
+  mutate(years_since_quit = ifelse(is.na(years_since_quit), 0, years_since_quit))
+
+# Relocate columns to a correct position
+if ("smoking_history_numeric" %in% colnames(merged_data) & "years_since_quit" %in% colnames(merged_data)) {
+  merged_data <- merged_data %>%
+    relocate(smoking_history_numeric, years_since_quit, .after = weight)
+}
 
 write.csv(merged_data, "merged_smoking_history_new.csv", row.names = FALSE)
 
+# Merge years_since_last_medical_event
+merged_data <- merge(merged_data, df_result, by = "id", all.x = TRUE)
 
-# Merge with binary matrix in com_other
+# Relocate years_since_medical_events to be after years_since_quit
+if ("years_since_medical_events" %in% colnames(merged_data) & "years_since_quit" %in% colnames(merged_data)) {
+  merged_data <- merged_data %>%
+    relocate(years_since_medical_events, .after = years_since_quit)
+}
+
+# ---------------------------
+# 5. Merge with Binary Matrix in com_other
+# ---------------------------
 merged_data <- merge(merged_data, binary_df, by = "id", all.x = TRUE)
 
-merged_data <- merged_data %>%
-  select(...1, id, everything())
-
 write.csv(merged_data, "merged_new.csv", row.names = FALSE)
+
 
 
 
