@@ -224,7 +224,14 @@ if(length(medical_events_list) > 0){
 }
 write.csv(medical_events_df, "counts_of_years_of_medical_events.csv", row.names = FALSE)
 
-# (d) special_characters_report.csv: Frequency counts for removed special characters.
+# (d) years_since_medical_events.csv: calculate years passed since last medical event.
+df$year_extracted <- as.numeric(str_extract(df$comorbidities_other, "\\b(19|20)\\d{2}\\b"))
+df <- df %>%
+  mutate(years_since_medical_events = ifelse(!is.na(year_extracted), 2025 - year_extracted, 0))
+df_result <- df %>% select(id, years_since_medical_events)
+write.csv(df_result, "years_since_medical_events.csv", row.names = FALSE)
+
+# (e) special_characters_report.csv: Frequency counts for removed special characters.
 special_char_report <- data.frame(
   Character = unlist(special_chars_list),
   stringsAsFactors = FALSE
@@ -234,7 +241,7 @@ special_char_report <- data.frame(
   arrange(desc(Count))
 write.csv(special_char_report, "special_characters_report.csv", row.names = FALSE)
 
-# (e) typo_analysis_report.csv: Frequency table for removed typos grouped by letter count (only lengths 1, 2, 3).
+# (f) typo_analysis_report.csv: Frequency table for removed typos grouped by letter count (only lengths 1, 2, 3).
 typo_lengths <- nchar(typos_removed)
 typo_analysis_summary <- data.frame(length = typo_lengths) %>% 
   group_by(length) %>% 
@@ -242,7 +249,7 @@ typo_analysis_summary <- data.frame(length = typo_lengths) %>%
   filter(length %in% c(1, 2, 3))
 write.csv(typo_analysis_summary, "typo_analysis_report.csv", row.names = FALSE)
 
-# (f) list_of_removed_typos_with_counts.csv: List each removed typo and its frequency.
+# (g) list_of_removed_typos_with_counts.csv: List each removed typo and its frequency.
 typo_report <- data.frame(
   Typo = typos_removed,
   stringsAsFactors = FALSE
@@ -251,7 +258,7 @@ typo_report <- data.frame(
   arrange(desc(Count))
 write.csv(typo_report, "list_of_removed_typos_with_counts.csv", row.names = FALSE)
 
-# (g) non_English_words_report.csv: Frequency table for removed non-English words.
+# (h) non_English_words_report.csv: Frequency table for removed non-English words.
 non_eng_report <- data.frame(
   NonEnglishWord = non_english_removed_list,
   stringsAsFactors = FALSE
@@ -260,7 +267,7 @@ non_eng_report <- data.frame(
   arrange(desc(Count))
 write.csv(non_eng_report, "non_English_words_report.csv", row.names = FALSE)
 
-# (h) stop_words_count.csv: List all removed stop words and their counts.
+# (i) stop_words_count.csv: List all removed stop words and their counts.
 stop_words_report <- data.frame(
   StopWord = stop_words_removed,
   stringsAsFactors = FALSE
@@ -269,7 +276,7 @@ stop_words_report <- data.frame(
   arrange(desc(Count))
 write.csv(stop_words_report, "stop_words_count.csv", row.names = FALSE)
 
-# (i) cleanup_summary_report.csv: Summary of cleaning metrics.
+# (j) cleanup_summary_report.csv: Summary of cleaning metrics.
 cleanup_summary <- data.frame(
   Metric = c(
     "Total Numbers Removed (non-years)",
@@ -290,7 +297,7 @@ cleanup_summary <- data.frame(
 )
 write.csv(cleanup_summary, "cleanup_summary_report.csv", row.names = FALSE)
 
-# (j) Binary Matrix: Create a matrix with the first column as id and subsequent columns for each dictionary term.
+# (k) Binary Matrix: Create a matrix with the first column as id and subsequent columns for each dictionary term.
 create_binary_matrix <- function(cleaned_texts, dictionary_terms) {
   t(sapply(cleaned_texts, function(text) {
     words <- unlist(strsplit(text, "\\s+"))
@@ -319,17 +326,16 @@ ggsave("top_terms_plot.png", width = 8, height = 6)
 # The following CSV files are produced:
 # 1. counts_of_year_extraction_report.csv
 # 2. counts_of_years_of_medical_events.csv
-# 3. special_characters_report.csv
-# 4. typo_analysis_report.csv
-# 5. list_of_removed_typos_with_counts.csv
-# 6. non_English_words_report.csv
-# 7. stop_words_count.csv
-# 8. cleanup_summary_report.csv
-# 9. cleaned_dictionary.csv
-# 10. binary_matrix.csv
+# 3. years_since_medical_events.csv
+# 4. special_characters_report.csv
+# 5. typo_analysis_report.csv
+# 6. list_of_removed_typos_with_counts.csv
+# 7. non_English_words_report.csv
+# 8. stop_words_count.csv
+# 9. cleanup_summary_report.csv
+# 10. cleaned_dictionary.csv
+# 11. binary_matrix.csv
 # top_terms_plot.png
-
-
 
 
 
